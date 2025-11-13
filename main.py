@@ -2,7 +2,6 @@ import requests
 import os
 import time
 import telebot
-import argparse
 from dotenv import load_dotenv
 
 
@@ -23,29 +22,9 @@ def send_notification(bot, attempt, chat_id):
 def main():
     load_dotenv()
 
-    # Парсинг аргументов командной строки
-    parser = argparse.ArgumentParser(
-        description="Telegram бот для отслеживания статуса проверки работ на платформе Devman"
-    )
-    parser.add_argument(
-        "-api",
-        "--dvmn_api_token",
-        type=str,
-        metavar="",
-        help="DVMN API token",
-        default=None,
-    )
-    parser.add_argument(
-        "-id", "--chat_id", type=str, metavar="", help="Telegram chat ID", default=None
-    )
-    parser.add_argument(
-        "--tg_token", type=str, metavar="", help="Telegram token", default=None
-    )
-    args = parser.parse_args()
-
-    DVMN_API_TOKEN = args.dvmn_api_token or os.getenv("DVMN_API_TOKEN")
-    TG_TOKEN = args.tg_token or os.getenv("DEVMAN_CODE_REVIEW_BOT_TG_TOKEN")
-    CHAT_ID = args.chat_id or os.getenv("CHAT_ID")
+    DVMN_API_TOKEN = os.getenv("DVMN_API_TOKEN")
+    TG_TOKEN = os.getenv("DEVMAN_CODE_REVIEW_BOT_TG_TOKEN")
+    CHAT_ID = os.getenv("CHAT_ID")
 
     if not all([DVMN_API_TOKEN, TG_TOKEN, CHAT_ID]):
         print("Ошибка: не все необходимые переменные окружения установлены")
