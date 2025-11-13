@@ -72,7 +72,6 @@ def main():
                 timestamp = answer["timestamp_to_request"]
 
         except requests.exceptions.ReadTimeout:
-            print("Таймаут запроса - продолжаем...")
             continue
         except requests.exceptions.ConnectionError:
             print("Проблемы с соединением. Ждем 5 секунд...")
