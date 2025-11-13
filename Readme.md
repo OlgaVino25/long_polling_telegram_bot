@@ -89,6 +89,8 @@ https://dvmn.org/modules/...
 https://dvmn.org/modules/...
 ```
 
+<img width="268" height="189" alt="Снимок экрана 2025-11-12 062121" src="https://github.com/user-attachments/assets/69069c07-90f7-4f31-91c9-ea0db8997fa4" />
+
 ##  Архитектура проекта
 
 ```text
