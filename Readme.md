@@ -53,9 +53,9 @@ pip install -r requirements.txt
 Создать файл `.env` в корне проекта:
 
 ```env
-DVMN_API_TOKEN=ваш_dvmn_api_здесь
-TG_TOKEN=ваш_telegram_bot_токен_здесь
-CHAT_ID=ваш_telegram_chat_id_здесь
+dvmn_api_token=ваш_dvmn_api_здесь
+tg_token=ваш_telegram_bot_токен_здесь
+chat_id=ваш_telegram_chat_id_здесь
 ```
 
 ## Запуск

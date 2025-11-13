@@ -22,18 +22,18 @@ def send_notification(bot, attempt, chat_id):
 def main():
     load_dotenv()
 
-    DVMN_API_TOKEN = os.getenv("DVMN_API_TOKEN")
-    TG_TOKEN = os.getenv("DEVMAN_CODE_REVIEW_BOT_TG_TOKEN")
-    CHAT_ID = os.getenv("CHAT_ID")
+    dvmn_api_token = os.getenv("DVMN_API_TOKEN")
+    tg_token = os.getenv("DEVMAN_CODE_REVIEW_BOT_TG_TOKEN")
+    chat_id = os.getenv("CHAT_ID")
 
-    if not all([DVMN_API_TOKEN, TG_TOKEN, CHAT_ID]):
+    if not all([dvmn_api_token, tg_token, chat_id]):
         print("Ошибка: не все необходимые переменные окружения установлены")
         return
 
-    bot = telebot.TeleBot(token=TG_TOKEN)
+    bot = telebot.TeleBot(token=tg_token)
 
     try:
-        chat_info = bot.get_chat(CHAT_ID)
+        chat_info = bot.get_chat(chat_id)
         if chat_info.first_name:
             greeting = f"Привет, {chat_info.first_name}! \nБот запущен и начал отслеживать проверки!"
         elif chat_info.username:
@@ -41,14 +41,14 @@ def main():
         else:
             greeting = "Привет! \nБот запущен и начал отслеживать проверки!"
 
-        bot.send_message(chat_id=CHAT_ID, text=greeting)
+        bot.send_message(chat_id=chat_id, text=greeting)
 
     except Exception as e:
         print(f"Ошибка при отправке приветствия: {e}")
 
     url = "https://dvmn.org/api/long_polling/"
     headers = {
-        "Authorization": f"Token {DVMN_API_TOKEN}",
+        "Authorization": f"Token {dvmn_api_token}",
     }
 
     timestamp = None
@@ -65,7 +65,7 @@ def main():
 
             if answer["status"] == "found":
                 for attempt in answer["new_attempts"]:
-                    send_notification(bot, attempt, CHAT_ID)
+                    send_notification(bot, attempt, chat_id)
                 timestamp = answer["last_attempt_timestamp"]
 
             elif answer["status"] == "timeout":
