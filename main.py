@@ -1,8 +1,10 @@
 import requests
 import os
 import time
+import logging
 import telebot
 from dotenv import load_dotenv
+from logger import setup_logging
 
 
 def send_notification(bot, attempt, chat_id):
@@ -25,12 +27,15 @@ def main():
     dvmn_api_token = os.getenv("DVMN_API_TOKEN")
     tg_token = os.getenv("DEVMAN_CODE_REVIEW_BOT_TG_TOKEN")
     chat_id = os.getenv("CHAT_ID")
+    admin_chat_id = os.getenv("ADMIN_CHAT_ID")
 
     if not all([dvmn_api_token, tg_token, chat_id]):
         print("Ошибка: не все необходимые переменные окружения установлены")
         return
 
     bot = telebot.TeleBot(token=tg_token)
+
+    setup_logging(bot, admin_chat_id)
 
     try:
         chat_info = bot.get_chat(chat_id)
@@ -44,7 +49,7 @@ def main():
         bot.send_message(chat_id=chat_id, text=greeting)
 
     except Exception as e:
-        print(f"Ошибка при отправке приветствия: {e}")
+        logging.error(f"Ошибка при отправке приветствия: {e}")
 
     url = "https://dvmn.org/api/long_polling/"
     headers = {
@@ -74,11 +79,11 @@ def main():
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
-            print("Проблемы с соединением. Ждем 5 секунд...")
+            logging.warning("Проблемы с соединением. Ждем 5 секунд...")
             time.sleep(5)
             continue
         except Exception as e:
-            print(f"Произошла ошибка: {e}")
+            logging.error(f"Произошла ошибка: {e}")
             time.sleep(5)
             continue
 
