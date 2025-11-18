@@ -8,7 +8,9 @@ Telegram бот для отслеживания статуса проверки 
 - Мгновенные уведомления в Telegram
 - Информация о результате проверки (принято/есть ошибки)
 - Ссылки на проверенную работу
+- Отправка логов об ошибках в Telegram админу
 - Автоматический перезапуск при сетевых сбоях
+- Запуск как systemd сервис на сервере
 - Настройка через переменные окружения
 
 ## Технологии
@@ -17,6 +19,8 @@ Telegram бот для отслеживания статуса проверки 
 - `pyTelegramBotAPI` - работа с Telegram Bot API
 - `Requests` - HTTP запросы к API Devman
 - `python-dotenv` - управление переменными окружения
+- `Systemd` - запуск как сервис на сервере
+- `Logging` - система логирования с отправкой в Telegram
 
 ## Установка
 
@@ -53,9 +57,10 @@ pip install -r requirements.txt
 Создать файл `.env` в корне проекта:
 
 ```env
-dvmn_api_token=ваш_dvmn_api_здесь
-tg_token=ваш_telegram_bot_токен_здесь
-chat_id=ваш_telegram_chat_id_здесь
+DVMN_API_TOKEN=ваш_dvmn_api_здесь
+TG_TOKEN=ваш_telegram_bot_токен_здесь
+CHAT_ID=ваш_telegram_chat_id_здесь
+ADMIN_CHAT_ID=ваш_admin_chat_id_для_логов_здесь
 ```
 
 ## Запуск
@@ -96,17 +101,84 @@ https://dvmn.org/modules/...
 ```text
 devman-telegram-bot/
 ├── main.py               # Основной файл приложения
+├── logger.py             # Система логирования с Telegram-уведомлениями
 ├── requirements.txt      # Зависимости проекта
 ├── .gitignore            # Игнорируемые файлы Git
 ├── .env                  # Переменные окружения (не включен в git)
 └── README.md             # Документация
 ```
 
+## Развертывание на сервере
+
+### Настройка systemd сервиса
+
+Создайте файл `/etc/systemd/system/long-polling-bot.service`:
+
+```ini
+[Unit]
+Description=Long Polling Telegram Bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/long_polling_telegram_bot
+EnvironmentFile=/opt/long_polling_telegram_bot/.env
+ExecStart=/opt/long_polling_telegram_bot/venv/bin/python3 /opt/long_polling_telegram_bot/main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Активация сервиса:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable long-polling-bot
+sudo systemctl start long-polling-bot
+```
+
+### Мониторинг логов
+
+```bash
+sudo journalctl -u long-polling-bot.service -f
+```
+
+## Логирование ошибок
+
+Бот настроен на отправку логов об ошибках в отдельный Telegram-чат:
+- Ошибки подключения к API Devman
+- Проблемы с сетью
+- Критические ошибки приложения
+- Ошибки отправки сообщений в Telegram
+
+Для настройки необходимо указать `ADMIN_CHAT_ID` в файле `.env`
+
+## Мониторинг и управление
+
+```bash
+# Статус сервиса
+sudo systemctl status long-polling-bot.service
+
+# Просмотр логов
+sudo journalctl -u long-polling-bot.service -f
+
+# Перезапуск сервиса
+sudo systemctl restart long-polling-bot.service
+
+# Остановка сервиса
+sudo systemctl stop long-polling-bot.service
+```
+
+
 ## Особенности реализации
 
 - *Long Polling* - эффективное отслеживание изменений статуса проверок
 - *Обработка ошибок* - устойчивость к сетевым сбоям и таймаутам
 - *Профессиональное логирование* - информативные сообщения о состоянии системы
+- *Systemd сервис* - запуск как демон с автоматическим перезапуском
 
 ### Цель проекта
 
