@@ -1,8 +1,10 @@
 import logging
+import traceback
 
 
 class TelegramLogsHandler(logging.Handler):
     """Кастомный обработчик для отправки логов в Telegram"""
+
     def __init__(self, bot, chat_id):
         super().__init__()
         self.bot = bot
@@ -21,9 +23,12 @@ def setup_logging(bot, admin_chat_id):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+
     # Обработчик для Telegram
     telegram_handler = TelegramLogsHandler(bot, admin_chat_id)
-    telegram_handler.setLevel(logging.ERROR)
+    telegram_handler.setLevel(logging.WARNING)
     formatter = logging.Formatter("%(levelname)s: %(message)s\n\nTime: %(asctime)s")
     telegram_handler.setFormatter(formatter)
     logger.addHandler(telegram_handler)

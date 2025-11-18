@@ -1,8 +1,8 @@
 import requests
 import os
 import time
-import logging
 import telebot
+import traceback
 from dotenv import load_dotenv
 from logger import setup_logging
 
@@ -29,13 +29,13 @@ def main():
     chat_id = os.getenv("CHAT_ID")
     admin_chat_id = os.getenv("ADMIN_CHAT_ID")
 
-    if not all([dvmn_api_token, tg_token, chat_id]):
+    if not all([dvmn_api_token, tg_token, chat_id, admin_chat_id]):
         print("Ошибка: не все необходимые переменные окружения установлены")
         return
 
     bot = telebot.TeleBot(token=tg_token)
 
-    setup_logging(bot, admin_chat_id)
+    logger = setup_logging(bot, admin_chat_id)
 
     try:
         chat_info = bot.get_chat(chat_id)
@@ -49,7 +49,9 @@ def main():
         bot.send_message(chat_id=chat_id, text=greeting)
 
     except Exception as e:
-        logging.error(f"Ошибка при отправке приветствия: {e}")
+        logger.error(
+            f"Ошибка при отправке приветствия: {e}\n\nТрейсбек:\n{traceback.format_exc()}"
+        )
 
     url = "https://dvmn.org/api/long_polling/"
     headers = {
@@ -66,6 +68,7 @@ def main():
 
             response = requests.get(url, headers=headers, params=params, timeout=60)
             response.raise_for_status()
+
             answer = response.json()
 
             if answer["status"] == "found":
@@ -79,11 +82,17 @@ def main():
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
-            logging.warning("Проблемы с соединением. Ждем 5 секунд...")
+            logger.error("Проблемы с соединением. Ждем 5 секунд...")
+            time.sleep(5)
+            continue
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Ошибка запроса: {e}")
             time.sleep(5)
             continue
         except Exception as e:
-            logging.error(f"Произошла ошибка: {e}")
+            error_message = f"Произошла ошибка: {e}\n\n{traceback.format_exc()}"
+            print(error_message)
+            logger.error(error_message)
             time.sleep(5)
             continue
 
